@@ -93,7 +93,10 @@ class GameState extends State{
         let priorFont = ctx.font;
         ctx.font = "64px Minecraft";
         ctx.fillStyle = "white";
-        ctx.fillText("Time : "+(this._seconds/100),128,128);
+
+        if(!App.showDebug()) {
+            ctx.fillText("Time : " + (this._seconds / 100), 128, 128);
+        }
 
         ctx.font = priorFont;
     }
