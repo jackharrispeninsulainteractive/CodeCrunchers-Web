@@ -10,7 +10,8 @@ class Rectangle{
     }
 
     contains(x,y){
-        return x > this._bounds.x && x < (this._bounds.x + this._bounds.width) && y > this._bounds.y && y < this._bounds.y + this._bounds.height;
+        return x >= this._bounds.x && x <= (this._bounds.x + this._bounds.width) &&
+            y >= this._bounds.y && y <= (this._bounds.y + this._bounds.height);
     }
 
     getBounds(){
@@ -18,23 +19,16 @@ class Rectangle{
     }
 
     intersects(shape){
+        // Check if rectangles don't overlap
+        if (this.getX() > shape.getX() + shape.getWidth() ||
+            shape.getX() > this.getX() + this.getWidth() ||
+            this.getY() > shape.getY() + shape.getHeight() ||
+            shape.getY() > this.getY() + this.getHeight()) {
+            return false;
+        }
 
-        //Get the 4 points from the shape
-        let points = [
-            {x: shape.getX(), y: shape.getY()},
-            {x: shape.getX()+shape.getWidth(), y: shape.getY()+shape.getHeight()},
-            {x: shape.getX()+shape.getWidth(), y: shape.getY()},
-            {x: shape.getX(), y: shape.getY()+shape.getHeight()}];
-
-        let outcome = false;
-        points.forEach((point)=>{
-            let check = this.contains(point.x,point.y);
-            if(check){
-                outcome = true;
-            }
-        });
-
-        return outcome;
+        // If we get here, the rectangles must overlap
+        return true;
     }
 
     setX(x){
@@ -68,7 +62,4 @@ class Rectangle{
     getHeight(){
         return this._bounds.height;
     }
-
-
-
 }
