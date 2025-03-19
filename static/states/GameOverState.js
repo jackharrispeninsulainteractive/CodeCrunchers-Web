@@ -33,25 +33,29 @@ class GameOverState extends State{
         });
     }
 
+    saveScore(score) {
+        // First, check if score is defined
+        if (score === undefined || score === null) {
+            score = 0; // Provide a default value
+        }
 
-    saveScore(score){
         let priorData = localStorage.getItem("scores");
-
-        if(priorData === null){
-            localStorage.setItem("scores",JSON.stringify({results: []}))
+        if (priorData === null) {
+            localStorage.setItem("scores", JSON.stringify({results: []}));
         }
 
         priorData = JSON.parse(localStorage.getItem("scores"));
-
         let date = new Date();
-        let attempt = {data: date.toLocaleDateString()+" "+date.toLocaleTimeString(), score: score.toString()}
 
-        //let attempt = this._score
+        // Convert score to string safely
+        let attempt = {
+            data: date.toLocaleDateString() + " " + date.toLocaleTimeString(),
+            score: String(score) // Using String() is safer than toString() for potentially null values
+        };
+
         priorData.results.unshift(attempt);
-
-        localStorage.setItem("scores",JSON.stringify(priorData))
+        localStorage.setItem("scores", JSON.stringify(priorData));
     }
-
 
     setScore(score){
         this._score = score;
