@@ -42,7 +42,7 @@ class Player extends Entity {
 
         // Initialize hitboxes
         this._hitBox = new Rectangle(x + 4, y, 24, 32);
-        this._attackBox = new Rectangle(0, 0, 20, 20);
+        this._attackBox = new Rectangle(0, 0, 30, 20);
     }
 
     update() {
