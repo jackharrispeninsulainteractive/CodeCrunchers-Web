@@ -26,16 +26,24 @@ class SpriteSheet {
         }
     }
 
-    drawImage(index,x,y,ctx,absolute,dx = 1,dy = 1){
+// In your SpriteSheet.drawImage method, round the camera offset values to integers
+    drawImage(index, x, y, ctx, absolute, dx = 1, dy = 1) {
         ctx.imageSmoothingEnabled = false;
 
-        if(absolute){
+        if(absolute) {
             ctx.drawImage(this._image, this._indexes[index].x, this._indexes[index].y, 32, 32, x, y, (App.getTileSize()*App.getScale())*dx, App.getTileSize()*App.getScale()*dy)
-        }else{
-            ctx.drawImage(this._image, this._indexes[index].x, this._indexes[index].y, 32, 32, x-App.getCameraOffsets().x, y-App.getCameraOffsets().y, App.getTileSize()*App.getScale(), App.getTileSize()*App.getScale())
+        } else {
+            // Round camera offsets to prevent gaps
+            const cameraX = Math.round(App.getCameraOffsets().x);
+            const cameraY = Math.round(App.getCameraOffsets().y);
+
+            ctx.drawImage(this._image, this._indexes[index].x, this._indexes[index].y, 32, 32,
+                x - cameraX,
+                y - cameraY,
+                App.getTileSize()*App.getScale(),
+                App.getTileSize()*App.getScale())
         }
     }
-
 
     getIndexes(){
         return this._indexes;
