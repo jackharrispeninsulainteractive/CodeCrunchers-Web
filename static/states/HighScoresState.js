@@ -47,6 +47,9 @@ class HighScoresState extends State{
 
         // If we have valid scores data with results
         if (scores && scores.results && scores.results.length > 0) {
+
+            scores.results.sort((a, b) => b.score - a.score);
+
             let y = 128+64;
             let index = 0;
             let max = Math.min(10, scores.results.length);
