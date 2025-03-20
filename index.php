@@ -90,6 +90,8 @@ if (PHP_SAPI == 'cli-server') {
         "code-crunchers.entities.PowerUp",
         "code-crunchers.gui.InterfaceObject",
         "code-crunchers.gui.Button",
+        "code-crunchers.gui.PowerUpSelector",
+
         "code-crunchers.core.MouseManager",
         "code-crunchers.geometry.Rectangle",
 
@@ -101,7 +103,6 @@ if (PHP_SAPI == 'cli-server') {
         "code-crunchers.states.GameOverState",
         "code-crunchers.states.GameCompletedState",
         "code-crunchers.states.HighScoresState",
-
         "code-crunchers.helpers.Cookie"
 
     ],function (resources) {
