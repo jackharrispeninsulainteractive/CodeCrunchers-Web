@@ -1,4 +1,4 @@
-class Player extends Entity{
+class Player extends Entity {
     _moveSpeed = 4;
     _jumping = false;
     _jumpHeight = 8;
@@ -23,9 +23,12 @@ class Player extends Entity{
     _maxFallSpeed = 12;
     _gravity = 0.5;
 
-
     constructor(x, y) {
         super(x, y, 32);
+
+        // Set default cooldowns for player
+        this.setDamageCooldown(2); // 2 second invulnerability after taking damage
+        this.setDamageDealtCooldown(1.5); // 2.5 seconds between damaging the same enemy
 
         // Initialize animations
         this._animations.idleRight = new Animation([32,33,34,35,36,37], 240);
@@ -42,11 +45,18 @@ class Player extends Entity{
         this._attackBox = new Rectangle(0, 0, 20, 20);
     }
 
-    update(){
+    update() {
+        // Call parent update for common functionality (like invulnerability)
+        super.update();
+
         // Toggle debug mode
-        if(Kernel.instance.getKeyboardManager().keyPressed("F3")){
+        if(Kernel.instance.getKeyboardManager().keyPressed("F3")) {
             this._showDebug = !this._showDebug;
             Kernel.instance.getKeyboardManager().unPress("F3");
+        }
+
+        if(!this.isAlive()) {
+            this.die();
         }
 
         // Store original position for collision resolution
@@ -56,12 +66,12 @@ class Player extends Entity{
         this.updateAnimation(isMoving);
 
         // Jump logic
-        if(Kernel.instance.getKeyboardManager().keyPressed("w") && !this._jumping && this._grounded){
+        if(Kernel.instance.getKeyboardManager().keyPressed("w") && !this._jumping && this._grounded) {
             this.startJump();
         }
 
         // Attack logic
-        if(Kernel.instance.getKeyboardManager().keyPressed("space") && !this._isAttacking && this._attackCooldownTimer <= 0){
+        if(Kernel.instance.getKeyboardManager().keyPressed("space") && !this._isAttacking && this._attackCooldownTimer <= 0) {
             this.startAttack(isMoving);
         }
 
@@ -93,7 +103,7 @@ class Player extends Entity{
         let isMoving = false;
 
         // Left movement
-        if(Kernel.instance.getKeyboardManager().keyPressed("a")){
+        if(Kernel.instance.getKeyboardManager().keyPressed("a")) {
             this._animations.facing = 0;
             this._x -= this._moveSpeed;
             isMoving = true;
@@ -114,7 +124,7 @@ class Player extends Entity{
         }
 
         // Right movement
-        if(Kernel.instance.getKeyboardManager().keyPressed("d")){
+        if(Kernel.instance.getKeyboardManager().keyPressed("d")) {
             this._animations.facing = 1;
             this._x += this._moveSpeed;
             isMoving = true;
@@ -223,24 +233,29 @@ class Player extends Entity{
 
         entities.forEach(entity => {
             if (entity instanceof Enemy && entity._bodyHitbox) {
+                // Check if attack hitbox intersects with enemy
                 if (this._attackBox.intersects(entity._bodyHitbox)) {
-                    // Remove the enemy
-                    App.getState("gameState")._entities.delete(entity._id);
-                    App.getState("gameState").addScore(50);
+                    // Attempt to damage the enemy with cooldown check
+                    const damageDealt = this.attemptDamage(entity, 25);
 
-                    // Play sound
-                    if (App.getResource("EnemyDefeated.wav")) {
-                        App.getResource("EnemyDefeated.wav").play();
-                    } else {
-                        App.getResource("Attack.wav").play();
+                    // Only add score and play sound if damage was actually dealt
+                    if (damageDealt) {
+                        App.getState("gameState").addScore(50);
+
+                        // Play sound
+                        if (App.getResource("EnemyDefeated.wav")) {
+                            App.getResource("EnemyDefeated.wav").play();
+                        } else {
+                            App.getResource("Attack.wav").play();
+                        }
                     }
                 }
             }
         });
     }
 
-    handleJump(){
-        if(this._jumping){
+    handleJump() {
+        if(this._jumping) {
             App.getResource("Footstep.wav").pause();
 
             // Check for collision with tile above
@@ -270,7 +285,7 @@ class Player extends Entity{
         }
     }
 
-    handleGravity(){
+    handleGravity() {
         // Apply gravity (unless jumping)
         if (!this._jumping) {
             this._fallSpeed = Math.min(this._fallSpeed + this._gravity, this._maxFallSpeed);
@@ -333,8 +348,8 @@ class Player extends Entity{
         }
     }
 
-    die(){
-        if(App.getResource("Hurt.wav").currentTime > 0){
+    die() {
+        if(App.getResource("Hurt.wav").currentTime > 0) {
             App.getResource("Hurt.wav").currentTime = 0;
         }
         App.getResource("Hurt.wav").play();
@@ -342,12 +357,18 @@ class Player extends Entity{
     }
 
     render(ctx) {
-        // Draw the player sprite
-        this._activeAnimation.render(ctx, this._x*App.getScale(), this._y*App.getScale());
+        // Check if player should be visible during invulnerability flash
+        if (this.shouldDrawWhenFlashing()) {
+            // Draw the player sprite
+            this._activeAnimation.render(ctx, this._x * App.getScale(), this._y * App.getScale());
+        }
 
-        if(this._showDebug) {
+        if (this._showDebug) {
             this.renderDebugInfo(ctx);
         }
+
+        // Render health bar with green foreground
+        this.renderHealth(ctx, "#00ff00", "#ff0000");
     }
 
     /**
@@ -357,20 +378,20 @@ class Player extends Entity{
         // Draw player hitbox
         ctx.fillStyle = "rgba(255,255,0,0.5)";
         ctx.fillRect(
-            this._hitBox.getX()*App.getScale()-App.getCameraOffsets().x,
-            this._hitBox.getY()*App.getScale()-App.getCameraOffsets().y,
-            this._hitBox.getWidth()*App.getScale(),
-            this._hitBox.getHeight()*App.getScale()
+            this._hitBox.getX() * App.getScale() - App.getCameraOffsets().x,
+            this._hitBox.getY() * App.getScale() - App.getCameraOffsets().y,
+            this._hitBox.getWidth() * App.getScale(),
+            this._hitBox.getHeight() * App.getScale()
         );
 
         // Draw attack hitbox if attacking
         if (this._isAttacking) {
             ctx.fillStyle = "rgba(0,100,255,0.7)";
             ctx.fillRect(
-                this._attackBox.getX()*App.getScale()-App.getCameraOffsets().x,
-                this._attackBox.getY()*App.getScale()-App.getCameraOffsets().y,
-                this._attackBox.getWidth()*App.getScale(),
-                this._attackBox.getHeight()*App.getScale()
+                this._attackBox.getX() * App.getScale() - App.getCameraOffsets().x,
+                this._attackBox.getY() * App.getScale() - App.getCameraOffsets().y,
+                this._attackBox.getWidth() * App.getScale(),
+                this._attackBox.getHeight() * App.getScale()
             );
         }
 
@@ -387,13 +408,12 @@ class Player extends Entity{
                             this._activeAnimation === this._animations.runningLeft ? "runningLeft" :
                                 this._activeAnimation === this._animations.runningRight ? "runningRight" : "unknown";
 
-        // Render debug text
         this.renderDebugText(ctx, [
             "Code Crunchers Web dev 0.1",
             `FPS: ${App.getStatistics().Fps}`,
             `World size: ${App.getLevelGenerator().getWorld().length} total tiles, ${App.getLevelGenerator().getWorldWidth()} tiles x ${App.getLevelGenerator().getWorldHeight()} tiles`,
             `Entity Count: ${App.getState("gameState")._entities.size}`,
-            `Time: ${(App.getState("gameState")._seconds/100).toFixed(2)}`,
+            `Time: ${(App.getState("gameState")._seconds / 100).toFixed(2)}`,
             `Player: (${Math.round(this._x)}, ${Math.round(this._y)})`,
             `Hitbox: (${Math.round(this._hitBox.getX())}, ${Math.round(this._hitBox.getY())}, ${this._hitBox.getWidth()}x${this._hitBox.getHeight()})`,
             `Attack: (${Math.round(this._attackBox.getX())}, ${Math.round(this._attackBox.getY())}, ${this._attackBox.getWidth()}x${this._attackBox.getHeight()})`,
@@ -409,6 +429,11 @@ class Player extends Entity{
 
     /**
      * Helper function to render debug text with consistent spacing
+     * @param {CanvasRenderingContext2D} ctx - Canvas context
+     * @param {string[]} lines - Lines of text to render
+     * @param {number} x - X position for text
+     * @param {number} y - Y position for text
+     * @param {number} lineHeight - Spacing between lines
      */
     renderDebugText(ctx, lines, x = 32, y = 32, lineHeight = 20) {
         lines.forEach((line, index) => {
