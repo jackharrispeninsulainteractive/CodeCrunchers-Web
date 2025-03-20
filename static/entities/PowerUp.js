@@ -34,6 +34,8 @@ class PowerUp extends Entity{
             App.getResource("SynthChime4.wav").play();
             App.getState("gameState")._entities.delete(this._id);
             App.getState("gameState").addScore(10);
+
+            App.getState("gameState")._powerUpSelector.show();
         }
     }
 }
