@@ -11,6 +11,7 @@ class GameState extends State{
     _entities = new Map();
     _map = {tiles: [],width:0,height:0};
     _seconds = 0;
+    _powerUpSelector;
 
     constructor() {
         super();
@@ -18,6 +19,8 @@ class GameState extends State{
         this._music = ["Music1.wav","Music2.wav","Music3.wav","Music4.wav"];
 
         this._bonus = 100;
+
+        this._powerUpSelector = new PowerUpSelector();
     }
 
     startGame(){
@@ -99,6 +102,8 @@ class GameState extends State{
         }
 
         ctx.font = priorFont;
+
+        this._powerUpSelector.render(ctx)
     }
 
     update(){
@@ -119,6 +124,8 @@ class GameState extends State{
             App.getState("gameCompletedState").setScore(this._score);
             App.setState("gameCompletedState");
         }
+
+        this._powerUpSelector.update();
 
     }
 
