@@ -6,6 +6,7 @@ class Entity {
     _id;
     _textureId;
     _health = 100;
+    _attackDamage = 0;
 
     // Damage cooldown properties (for receiving damage)
     _lastDamageTime = 0;

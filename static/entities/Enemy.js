@@ -19,6 +19,8 @@ class Enemy extends Entity {
 
         // Position the damage hitbox initially
         this.updateDamageHitbox();
+
+        this._attackDamage = 10;
     }
 
     update() {
@@ -61,7 +63,7 @@ class Enemy extends Entity {
         // Check for collision with player
         if(this._damageHitbox.intersects(App.getState("gameState")._player._hitBox)) {
             // Attempt to damage player
-            const damageDealt = this.attemptDamage(App.getState("gameState")._player, 10);
+            const damageDealt = this.attemptDamage(App.getState("gameState")._player, this._attackDamage);
 
             // Play sound if damage was dealt
             if(damageDealt) {
