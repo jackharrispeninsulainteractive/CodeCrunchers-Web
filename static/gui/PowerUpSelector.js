@@ -1,20 +1,21 @@
 class PowerUpSelector {
 
     _active;
+    _x;
+    _y;
 
     constructor() {
 
         this._active = false;
 
         const canvas = App.getCanvas();
-        const centerX = canvas.width / 2;
-        const centerY = canvas.height / 2;
+
+        this._x = canvas.width / 2;
+        this._y = canvas.height / 2;
 
         // Default configuration
         this.config = {
             radius: 320,                       // Outer radius of the wheel
-            x: centerX,
-            y: centerY,
             innerRadius: 100,                  // Inner radius (center circle)
             borderColor: '#ffffff',           // Wheel border color
             borderWidth: 2,                   // Wheel border width
@@ -22,13 +23,11 @@ class PowerUpSelector {
             font: '14px "Minecraft", monospace', // Font for labels
             fontColor: '#ffffff',             // Font color
             keyFont: 'bold 16px "Minecraft", monospace', // Font for key indicators
-            active: false,                    // Is the wheel currently displayed?
-            timeScale: 0.5,                   // Game time scale when wheel is active (0.5 = half speed)
             segments: [                       // Wheel segments configuration
                 { name: 'JUMP', color: '#4caf50', key: 'W' },
-                { name: 'ATTACK', color: '#ffc107', key: 'A'},
+                { name: 'SPEED', color: '#2196f3', key: 'D'},
                 { name: 'HEALTH', color: '#ff5252', key: 'S'},
-                { name: 'SPEED', color: '#2196f3', key: 'D'}
+                { name: 'ATTACK', color: '#ffc107', key: 'A'},
 
             ]
         };
@@ -83,7 +82,7 @@ class PowerUpSelector {
 
         // Draw the wheel background - more transparent for cross layout
         ctx.beginPath();
-        ctx.arc(config.x, config.y, config.radius, 0, Math.PI * 2);
+        ctx.arc(this._x,this._y, config.radius, 0, Math.PI * 2);
         ctx.fillStyle = 'rgba(0, 0, 0, 0.5)'; // More transparent background for cross layout
         ctx.fill();
         ctx.lineWidth = config.borderWidth;
@@ -92,7 +91,7 @@ class PowerUpSelector {
 
         // Center circle (decorative only now)
         ctx.beginPath();
-        ctx.arc(config.x, config.y, config.innerRadius, 0, Math.PI * 2);
+        ctx.arc(this._x, this._y, config.innerRadius, 0, Math.PI * 2);
         ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
         ctx.fill();
         ctx.lineWidth = 1;
@@ -109,25 +108,25 @@ class PowerUpSelector {
             const keyDistance = config.radius + 15;
 
             if (index === 0) { // JUMP - Top (W)
-                segX = config.x;
-                segY = config.y - segmentDistance;
-                keyX = config.x;
-                keyY = config.y - keyDistance;
+                segX = this._x;
+                segY = this._y - segmentDistance;
+                keyX = this._x;
+                keyY = this._y - keyDistance;
             } else if (index === 1) { // SPEED - Right (D)
-                segX = config.x + segmentDistance;
-                segY = config.y;
-                keyX = config.x + keyDistance;
-                keyY = config.y;
+                segX = this._x + segmentDistance;
+                segY = this._y;
+                keyX = this._x + keyDistance;
+                keyY = this._y;
             } else if (index === 2) { // SHIELD - Bottom (S)
-                segX = config.x;
-                segY = config.y + segmentDistance;
-                keyX = config.x;
-                keyY = config.y + keyDistance;
+                segX = this._x;
+                segY = this._y + segmentDistance;
+                keyX = this._x;
+                keyY = this._y + keyDistance;
             } else { // ATTACK - Left (A)
-                segX = config.x - segmentDistance;
-                segY = config.y;
-                keyX = config.x - keyDistance;
-                keyY = config.y;
+                segX = this._x - segmentDistance;
+                segY = this._y;
+                keyX = this._x - keyDistance;
+                keyY = this._y;
             }
 
             // Draw segment box
