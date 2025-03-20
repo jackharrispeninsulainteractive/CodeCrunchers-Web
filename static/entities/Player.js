@@ -43,6 +43,8 @@ class Player extends Entity {
         // Initialize hitboxes
         this._hitBox = new Rectangle(x + 4, y, 24, 32);
         this._attackBox = new Rectangle(0, 0, 30, 20);
+
+        this._attackDamage = 25;
     }
 
     update() {
@@ -62,21 +64,22 @@ class Player extends Entity {
         // Store original position for collision resolution
         const originalX = this._x;
 
-        let isMoving = this.handleMovement(originalX);
-        this.updateAnimation(isMoving);
+        if(!App.getState("gameState")._powerUpSelector._active) {
+            let isMoving = this.handleMovement(originalX);
+            this.updateAnimation(isMoving);
 
-        // Jump logic
-        if(Kernel.instance.getKeyboardManager().keyPressed("w") && !this._jumping && this._grounded) {
-            this.startJump();
+            // Jump logic
+            if (Kernel.instance.getKeyboardManager().keyPressed("w") && !this._jumping && this._grounded) {
+                this.startJump();
+            }
+            // Attack logic
+            if(Kernel.instance.getKeyboardManager().keyPressed("space") && !this._isAttacking && this._attackCooldownTimer <= 0) {
+                this.startAttack(isMoving);
+            }
+            // Update attack state
+            this.handleAttack();
         }
 
-        // Attack logic
-        if(Kernel.instance.getKeyboardManager().keyPressed("space") && !this._isAttacking && this._attackCooldownTimer <= 0) {
-            this.startAttack(isMoving);
-        }
-
-        // Update attack state
-        this.handleAttack();
 
         // Keep hitbox in sync with player position
         this._hitBox.setX(this._x + 4);
@@ -236,7 +239,7 @@ class Player extends Entity {
                 // Check if attack hitbox intersects with enemy
                 if (this._attackBox.intersects(entity._bodyHitbox)) {
                     // Attempt to damage the enemy with cooldown check
-                    const damageDealt = this.attemptDamage(entity, 25);
+                    const damageDealt = this.attemptDamage(entity, this._attackDamage);
 
                     // Only add score and play sound if damage was actually dealt
                     if (damageDealt) {
