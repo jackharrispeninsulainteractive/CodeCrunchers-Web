@@ -3,6 +3,8 @@ class Enemy extends Entity{
     _speed = 1.5; // 25% slower than original speed of 2
     _bodyHitbox; // Main body hitbox
     _damageHitbox; // Damage hitbox that will be positioned in front of enemy
+    _lastDamageTime = 0; // Track when damage was last dealt
+    _damageCooldown = 1000; // Cooldown in milliseconds (1 second)
 
     constructor(x,y) {
         super(x,y,27);
@@ -54,14 +56,25 @@ class Enemy extends Entity{
 
         // Check for collision with player
         if(this._damageHitbox.intersects(App.getState("gameState")._player._hitBox)){
-            if(App.getResource("Hurt.wav").currentTime > 0){
-                App.getResource("Hurt.wav").currentTime = 0;
+            // Get current time to check cooldown
+            const currentTime = Date.now();
+
+            // Only deal damage if enough time has passed since last damage
+            if(currentTime - this._lastDamageTime >= this._damageCooldown) {
+                if(App.getResource("Hurt.wav").currentTime > 0){
+                    App.getResource("Hurt.wav").currentTime = 0;
+                }
+                App.getResource("Hurt.wav").play();
+
+                App.getState("gameState")._player.takeDamage(10);
+
+                // Update last damage time
+                this._lastDamageTime = currentTime;
             }
-            console.log("Collision detected with player & enemy damage hitbox");
-            App.getResource("Hurt.wav").play();
+        }
 
-            //App.getState("gameState")._player.takeDamage();
-
+        if(!this.isAlive()){
+            App.getState("gameState")._entities.delete(this._id);
         }
     }
 
@@ -82,9 +95,20 @@ class Enemy extends Entity{
         }
     }
 
+    /**
+     * Set the damage cooldown time in seconds
+     * @param {number} seconds - Cooldown time in seconds
+     */
+    setDamageCooldown(seconds) {
+        this._damageCooldown = seconds * 1000; // Convert to milliseconds
+    }
+
     render(ctx){
         // Draw the enemy sprite
         App.drawSprite(this._x*App.getScale(), this._y*App.getScale(), this._textureId);
+
+        // Render health bar
+        this.renderHealth(ctx,"#00fff7","#ff0000");
 
         // Show debug visualization if enabled
         if(App.showDebug()) {
@@ -105,6 +129,20 @@ class Enemy extends Entity{
                 this._damageHitbox.getWidth()*App.getScale(),
                 this._damageHitbox.getHeight()*App.getScale()
             );
+
+            // Show cooldown indicator in debug mode
+            const currentTime = Date.now();
+            const cooldownRemaining = Math.max(0, this._damageCooldown - (currentTime - this._lastDamageTime));
+
+            if (cooldownRemaining > 0) {
+                ctx.fillStyle = "white";
+                ctx.font = `${12*App.getScale()}px Arial`;
+                ctx.fillText(
+                    `CD: ${(cooldownRemaining / 1000).toFixed(1)}s`,
+                    this._x*App.getScale()-App.getCameraOffsets().x,
+                    (this._y - 10)*App.getScale()-App.getCameraOffsets().y
+                );
+            }
         }
     }
 }
