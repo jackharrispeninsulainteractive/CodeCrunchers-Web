@@ -58,8 +58,6 @@ class GameCompletedState extends State{
         ctx.font =  priorFont;
 
 
-        ctx.drawImage(App.getResource("fileReader.image('/static/res/CodeCrunchers-Logo.png')"),App.getCanvas().width/2-(1280/2),App.getCanvas().height-(256+64+32));
-
         this._continueButton.render(ctx);
 
     }
